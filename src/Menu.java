@@ -1,139 +1,146 @@
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
+    private Scanner scanner;
+    private String rutaConfigXML;
+    private ConfiguracioXML configuracio;
     private CsvDataReader csvDataReader;
-    private ConfiguracioXML configuracion;
+    private String columnaSeleccionada;
 
-    public Menu(String rutaConfiguracion, CsvDataReader csvDataReader) {
-        this.configuracion = new ConfiguracioXML(rutaConfiguracion);
-        this.csvDataReader = csvDataReader;
+    public Menu() {
+        scanner = new Scanner(System.in);
+        rutaConfigXML = "configuracio.xml"; 
+        configuracio = new ConfiguracioXML(rutaConfigXML);
+        csvDataReader = new CsvDataReader(configuracio.getRutaFitxerCSV());
+        columnaSeleccionada = null;
     }
 
-    public void mostrarMenu() {
-        Scanner scanner = new Scanner(System.in);
-        int opcio;
+    public void iniciar() {
+        boolean sortir = false;
 
-        do {
-            System.out.println("----- Menú -----");
-            System.out.println("1. Mostrar la lista de lenguajes");
-            System.out.println("2. Definir filtros por columnas");
-            System.out.println("3. Resetear los filtros por columnas");
-            System.out.println("4. Definir criterio de ordenación por columnas");
-            System.out.println("5. Resetear el criterio de ordenación por columnas");
-            System.out.println("6. Guardar en formato JSON");
-            System.out.println("7. Comparativa de lenguajes en los últimos 5 años");
-            System.out.println("8. Salir");
-            System.out.print("Selecciona una opción: ");
-            
-            try {
-                opcio = scanner.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("Error: Ingresa un número válido.");
+        while (!sortir) {
+            mostrarMenu();
+            if (scanner.hasNextInt()) { 
+                int opcio = scanner.nextInt();
                 scanner.nextLine(); 
-                opcio = -1; 
-            }
-            
-            switch (opcio) {
-                case 1:
-                    mostrarDades();
-                    break;
-                case 2:
-                    definirFiltres();
-                    break;
-                case 3:
-                    resetejarFiltres();
-                    break;
-                case 4:
-                    definirCriteriOrdenacio();
-                    break;
-                case 5:
-                    resetejarCriteriOrdenacio();
-                    break;
-                case 6:
-                    desarDadesEnJSON();
-                    break;
-                case 7:
-                    comparativaLlenguatges();
-                    break;
-                case 8:
-                    System.out.println("Adéu!");
-                    break;
-                default:
-                    System.out.println("Opció no vàlida. Torna a intentar.");
-                    break;
-            }
-            
-        } while (opcio != 8);
-    }
 
-    public void mostrarDades() {
-        csvDataReader.llegirFitxerCSV(configuracion.getRutaFitxerCSV());
-        List<String[]> dadesSenseOrdenar = csvDataReader.obtenirDades(); 
-    
-        if (dadesSenseOrdenar.isEmpty()) {
-            System.out.println("No se encontraron datos que cumplan con los filtros.");
-            return;
-        }
-    
-        int limiteRegistros = configuracion.getLimitRegistres();
-        boolean hayFiltrosColumnas = false; //S'implementara mes endavant
-        boolean hayFiltrosFilas = false; //S'implementara mes endavant
-    
-        int registrosMostrados = 0;
-    
-        for (String[] fila : dadesSenseOrdenar) {
-    
-            if ((limiteRegistros > 0 && registrosMostrados < limiteRegistros)) {
-                String name = fila[0];
-                String year = fila[1];
-                String quarter = fila[2];
-                String count = fila[3];
-    
-                System.out.println("Nombre: " + name);
-                System.out.println("Año: " + year);
-                System.out.println("Trimestre: " + quarter);
-                System.out.println("Cantidad de personas: " + count);
-                System.out.println();
-    
-                registrosMostrados++;
+                switch (opcio) {
+                    case 1:
+                        mostrarDades();
+                        break;
+                    case 2:
+                        definirFiltresPerColumnes();
+                        break;
+                    case 3:
+                        restablirFiltresPerColumnes();
+                        break;
+                    case 4:
+                        definirCriteriOrdenacio();
+                        break;
+                    case 5:
+                        restablirCriteriOrdenacio();
+                        break;
+                    case 6:
+                        desarDadesEnJSON();
+                        break;
+                    case 7:
+                        realitzarComparativa();
+                        break;
+                    case 8:
+                        desarComparativaEnTXT();
+                        break;
+                    case 9:
+                        sortir = true;
+                        scanner.close();
+                        break;
+                    default:
+                        System.out.println("Opció no vàlida. Si us plau, seleccioneu una opció vàlida.");
+                }
+            } else {
+                System.out.println("Entrada no vàlida. Si us plau, introduïu un número.");
+                scanner.nextLine(); 
             }
         }
     }
+
+    private void mostrarMenu() {
+        System.out.println("Menú Principal:");
+        System.out.println("1. Mostrar llista de dades del CSV");
+        System.out.println("2. Definir filtres per columnes");
+        System.out.println("3. Restablir filtres per columnes");
+        System.out.println("4. Definir criteri d'ordenació");
+        System.out.println("5. Restablir criteri d'ordenació");
+        System.out.println("6. Desar llista filtrada i ordenada en format JSON");
+        System.out.println("7. Realitzar comparativa de dades");
+        System.out.println("8. Desar comparativa en format TXT");
+        System.out.println("9. Sortir");
+        System.out.print("Seleccioneu una opció: ");
+    }
+
+    private void mostrarDades() {
+        int limitRegistres = configuracio.getLimitRegistres();
     
+        
+        List<List<String>> dades = csvDataReader.getDades();
     
+        
+        csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada);
     
-    public void definirFiltres() {
+        int totalRegistres = dades.size();
+    
+        System.out.println("Llista de dades:");
+    
+        for (int i = 0; i < Math.min(limitRegistres, totalRegistres); i++) {
+            List<String> fila = dades.get(i);
+            System.out.println(fila);
+        }
+    
+        if (totalRegistres > limitRegistres) {
+            System.out.println("Hi ha més registres disponibles. Utilitza filtres per veure'n menys.");
+        }
+    }
+
+    private void definirFiltresPerColumnes() {
+        System.out.print("Introdueix el nom de la columna (Name, Year, Quarter o Count): ");
+        String nomColumna = scanner.nextLine().toLowerCase(); 
+    
+        if (nomColumna.equals("name") || nomColumna.equals("year") || nomColumna.equals("quarter") || nomColumna.equals("count")) {
+            columnaSeleccionada = nomColumna;
+            System.out.println("Columna seleccionada per a la ordenació: " + columnaSeleccionada);
+        } else {
+            System.out.println("Nom de columna no vàlid.");
+            columnaSeleccionada = null;
+        }
+    }
+
+    private void restablirFiltresPerColumnes() {
+        columnaSeleccionada = null; 
+        System.out.println("Filtres per columnes restablerts.");
+    }
+
+    private void definirCriteriOrdenacio() {
+
+    }
+
+    private void restablirCriteriOrdenacio() {
+       
+    }
+
+    private void desarDadesEnJSON() {
         
     }
 
-    public void resetejarFiltres() {
-        
+    private void realitzarComparativa() {
+       
     }
 
-    public void definirCriteriOrdenacio() {
-        
-    }
-
-    public void resetejarCriteriOrdenacio() {
-        
-    }
-
-    public void desarDadesEnJSON() {
-        
-    }
-
-    public void comparativaLlenguatges() {
+    private void desarComparativaEnTXT() {
         
     }
 
     public static void main(String[] args) {
-        // Aquí proporciona la ruta del archivo XML que has creado
-        String rutaConfiguracionXML = "configuracio.xml";
-        
-        CsvDataReader csvDataReader = new CsvDataReader();
-        Menu menu = new Menu(rutaConfiguracionXML, csvDataReader);
-        menu.mostrarMenu();
+        Menu menu = new Menu();
+        menu.iniciar();
     }
 }
