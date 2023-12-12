@@ -13,10 +13,9 @@ public class CsvDataReader {
 
     public void llegirFitxerCSV(String rutaFitxerCSV) {
         String linia = "";
-        String separador = ","; // Assumeixem que les columnes estan separades per comes.
+        String separador = ",";
 
         try (BufferedReader br = new BufferedReader(new FileReader(rutaFitxerCSV))) {
-            // Llegim la capçalera (la primera línia) si hi és i la descartem.
             br.readLine();
 
             while ((linia = br.readLine()) != null) {

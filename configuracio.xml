@@ -1,0 +1,6 @@
+<configuracio>
+    <rutaFitxerCSV>gh-star-event.csv</rutaFitxerCSV>
+    <rutaSortida>sortidaJSON</rutaSortida>
+    <limitRegistres>10</limitRegistres>
+</configuracio>
+

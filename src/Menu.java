@@ -1,10 +1,13 @@
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
     private CsvDataReader csvDataReader;
+    private ConfiguracioXML configuracion;
 
-    public Menu(CsvDataReader csvDataReader) {
+    public Menu(String rutaConfiguracion, CsvDataReader csvDataReader) {
+        this.configuracion = new ConfiguracioXML(rutaConfiguracion);
         this.csvDataReader = csvDataReader;
     }
 
@@ -66,9 +69,41 @@ public class Menu {
     }
 
     public void mostrarDades() {
-        
+        csvDataReader.llegirFitxerCSV(configuracion.getRutaFitxerCSV());
+        List<String[]> dadesSenseOrdenar = csvDataReader.obtenirDades(); 
+    
+        if (dadesSenseOrdenar.isEmpty()) {
+            System.out.println("No se encontraron datos que cumplan con los filtros.");
+            return;
+        }
+    
+        int limiteRegistros = configuracion.getLimitRegistres();
+        boolean hayFiltrosColumnas = false; //S'implementara mes endavant
+        boolean hayFiltrosFilas = false; //S'implementara mes endavant
+    
+        int registrosMostrados = 0;
+    
+        for (String[] fila : dadesSenseOrdenar) {
+    
+            if ((limiteRegistros > 0 && registrosMostrados < limiteRegistros)) {
+                String name = fila[0];
+                String year = fila[1];
+                String quarter = fila[2];
+                String count = fila[3];
+    
+                System.out.println("Nombre: " + name);
+                System.out.println("Año: " + year);
+                System.out.println("Trimestre: " + quarter);
+                System.out.println("Cantidad de personas: " + count);
+                System.out.println();
+    
+                registrosMostrados++;
+            }
+        }
     }
-
+    
+    
+    
     public void definirFiltres() {
         
     }
@@ -94,8 +129,11 @@ public class Menu {
     }
 
     public static void main(String[] args) {
+        // Aquí proporciona la ruta del archivo XML que has creado
+        String rutaConfiguracionXML = "configuracio.xml";
+        
         CsvDataReader csvDataReader = new CsvDataReader();
-        Menu menu = new Menu(csvDataReader);
+        Menu menu = new Menu(rutaConfiguracionXML, csvDataReader);
         menu.mostrarMenu();
     }
 }
