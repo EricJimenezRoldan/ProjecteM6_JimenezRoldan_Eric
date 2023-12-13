@@ -14,28 +14,31 @@ public class CsvDataReader {
     }
 
     public List<List<String>> getDades() {
+        dades.clear(); // Limpia la lista antes de añadir nuevos datos
+    
         try (BufferedReader br = new BufferedReader(new FileReader(rutaFitxerCSV))) {
             String linia;
             boolean primeraLinia = true;
-
+    
             while ((linia = br.readLine()) != null) {
+                if (primeraLinia) {
+                    primeraLinia = false;
+                    continue; // Salta la primera línea si es un encabezado
+                }
+    
                 String[] parts = linia.split(",");
                 List<String> fila = new ArrayList<>();
-
+    
                 for (String part : parts) {
                     fila.add(part);
                 }
-
+    
                 dades.add(fila);
-
-                if (primeraLinia) {
-                    primeraLinia = false;
-                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+    
         return dades;
     }
 
@@ -54,11 +57,10 @@ public class CsvDataReader {
     
         return -1;
     }
-    public void ordenarDatosPorColumna(List<List<String>> datos, String columnaSeleccionada) {
+    public void ordenarDatosPorColumna(List<List<String>> datos, String columnaSeleccionada, boolean ordenMenorAMayor) {
         if (columnaSeleccionada != null) {
-            final int columnaIdx;  
-
-            
+            final int columnaIdx;
+    
             switch (columnaSeleccionada.toLowerCase()) {
                 case "name":
                     columnaIdx = 0;
@@ -73,30 +75,34 @@ public class CsvDataReader {
                     columnaIdx = 3;
                     break;
                 default:
-                    columnaIdx = -1; 
+                    columnaIdx = -1;
             }
-
+    
             if (columnaIdx != -1) {
-                
                 datos.sort((fila1, fila2) -> {
                     String valor1 = fila1.get(columnaIdx);
                     String valor2 = fila2.get(columnaIdx);
-
-                    if (columnaIdx == 1 || columnaIdx == 3) {  
+    
+                    if (columnaIdx == 1 || columnaIdx == 2 || columnaIdx == 3) { // Columnas numéricas
                         try {
                             int numValor1 = Integer.parseInt(valor1);
                             int numValor2 = Integer.parseInt(valor2);
-                            return Integer.compare(numValor1, numValor2);
+                            return ordenMenorAMayor ? Integer.compare(numValor1, numValor2) 
+                                                     : Integer.compare(numValor2, numValor1);
                         } catch (NumberFormatException e) {
-                            
-                            return valor1.compareTo(valor2);
+                            // Si hay un error de formato numérico, compara como cadena
+                            return ordenMenorAMayor ? valor1.compareTo(valor2)
+                                                     : valor2.compareTo(valor1);
                         }
                     } else {
-                        return valor1.compareTo(valor2);
+                        // Comparación de cadenas para columnas no numéricas
+                        return ordenMenorAMayor ? valor1.compareTo(valor2)
+                                                 : valor2.compareTo(valor1);
                     }
                 });
             }
         }
     }
 }
+
 

@@ -7,6 +7,8 @@ public class Menu {
     private ConfiguracioXML configuracio;
     private CsvDataReader csvDataReader;
     private String columnaSeleccionada;
+    private boolean criteriOrdenacio; 
+
 
     public Menu() {
         scanner = new Scanner(System.in);
@@ -14,6 +16,7 @@ public class Menu {
         configuracio = new ConfiguracioXML(rutaConfigXML);
         csvDataReader = new CsvDataReader(configuracio.getRutaFitxerCSV());
         columnaSeleccionada = null;
+        criteriOrdenacio = true;
     }
 
     public void iniciar() {
@@ -81,11 +84,11 @@ public class Menu {
     private void mostrarDades() {
         int limitRegistres = configuracio.getLimitRegistres();
     
-        
+        // Obtener los datos de CsvDataReader
         List<List<String>> dades = csvDataReader.getDades();
     
-        
-        csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada);
+        // Llamar a ordenarDatosPorColumna con la columna seleccionada y el criterio de ordenación
+        csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada, criteriOrdenacio);
     
         int totalRegistres = dades.size();
     
@@ -120,11 +123,25 @@ public class Menu {
     }
 
     private void definirCriteriOrdenacio() {
-
+        System.out.print("Vols ordenar de menor a major (1) o de major a menor (2)? ");
+        int opcio = scanner.nextInt();
+    
+        if (opcio == 1 || opcio == 2) {
+            if (opcio == 1) {
+                criteriOrdenacio = true;
+            }
+            else{
+                criteriOrdenacio = false;
+            }
+            System.out.println("Criteri d'ordenació establert a: " + (opcio == 1 ? "de menor a major" : "de major a menor"));
+        } else {
+            System.out.println("Opció no vàlida. Si us plau, seleccioneu 1 per a de major a menor o 2 per a de menor a major.");
+        }
     }
 
     private void restablirCriteriOrdenacio() {
-       
+       criteriOrdenacio = true;
+       System.out.println("Criteri d'ordenacio restablert");
     }
 
     private void desarDadesEnJSON() {
