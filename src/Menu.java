@@ -1,7 +1,11 @@
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -56,7 +60,7 @@ public class Menu {
                         realitzarComparativa();
                         break;
                     case 8:
-                        desarComparativaEnTXT();
+                        desarComparativaEnTXT("comparativa.txt");
                         break;
                     case 9:
                         sortir = true;
@@ -101,10 +105,7 @@ public class Menu {
             List<String> fila = dades.get(i);
             System.out.println(fila);
         }
-    
-        if (totalRegistres > limitRegistres) {
-            System.out.println("Hi ha més registres disponibles. Utilitza filtres per veure'n menys.");
-        }
+
     }
 
     private void definirFiltresPerColumnes() {
@@ -169,11 +170,92 @@ public class Menu {
     }
 
     private void realitzarComparativa() {
-       
+        // Obtener los datos del CSV
+        List<List<String>> dades = csvDataReader.getDades();
+
+        // Define los lenguajes para la comparativa
+        String[] llenguatges = {"Python", "Java", "C#", "JavaScript", "C++"};
+        int currentYear = java.time.Year.now().getValue();
+        int startYear = currentYear - 5;
+
+        // Inicializar la estructura para almacenar la evolución
+        Map<String, Map<Integer, Integer>> evolucio = new HashMap<>();
+        for (String llenguatge : llenguatges) {
+            evolucio.put(llenguatge, new HashMap<>());
+        }
+
+        // Procesar los datos
+        for (List<String> fila : dades) {
+            String llenguatge = fila.get(0).replace("\"", "");
+            try {
+                int any = Integer.parseInt(fila.get(1).replace("\"", ""));
+                int count = Integer.parseInt(fila.get(3).replace("\"", ""));
+
+                // Verificar si el lenguaje y el año están dentro de los parámetros deseados
+                if (any >= startYear && java.util.Arrays.asList(llenguatges).contains(llenguatge)) {
+                    Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
+                    countsPerYear.merge(any, count, Integer::sum);
+                }
+            } catch (NumberFormatException e) {
+                // Manejar posibles errores de formato numérico
+                System.err.println("Error en el formato numérico: " + e.getMessage());
+            }
+        }
+
+        // Mostrar los resultados
+        for (String llenguatge : llenguatges) {
+            System.out.println("Evolució de " + llenguatge + ":");
+            Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
+            for (int any = startYear; any <= currentYear; any++) {
+                System.out.println(any + ": " + countsPerYear.getOrDefault(any, 0));
+            }
+            System.out.println();
+        }
     }
 
-    private void desarComparativaEnTXT() {
-        
+    public void desarComparativaEnTXT(String rutaArchivo) {
+        List<List<String>> dades = csvDataReader.getDades();
+
+        // Define los lenguajes para la comparativa
+        String[] llenguatges = {"Python", "Java", "C#", "JavaScript", "C++"};
+        int currentYear = java.time.Year.now().getValue();
+        int startYear = currentYear - 5;
+
+        // Inicializar la estructura para almacenar la evolución
+        Map<String, Map<Integer, Integer>> evolucio = new HashMap<>();
+        for (String llenguatge : llenguatges) {
+            evolucio.put(llenguatge, new TreeMap<>()); // TreeMap mantiene los años ordenados
+        }
+
+        // Procesar los datos
+        for (List<String> fila : dades) {
+            String llenguatge = fila.get(0).replace("\"", "");
+            try {
+                int any = Integer.parseInt(fila.get(1).replace("\"", ""));
+                int count = Integer.parseInt(fila.get(3).replace("\"", ""));
+
+                if (any >= startYear && java.util.Arrays.asList(llenguatges).contains(llenguatge)) {
+                    Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
+                    countsPerYear.merge(any, count, Integer::sum);
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Error en el formato numérico: " + e.getMessage());
+            }
+        }
+
+        // Guardar los resultados en un archivo TXT
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(rutaArchivo))) {
+            for (String llenguatge : llenguatges) {
+                writer.write("Evolucio de " + llenguatge + ":\n");
+                Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
+                for (Map.Entry<Integer, Integer> entry : countsPerYear.entrySet()) {
+                    writer.write(entry.getKey() + ": " + entry.getValue() + "\n");
+                }
+                writer.write("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

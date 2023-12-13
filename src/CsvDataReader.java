@@ -80,8 +80,8 @@ public class CsvDataReader {
     
             if (columnaIdx != -1) {
                 datos.sort((fila1, fila2) -> {
-                    String valor1 = fila1.get(columnaIdx);
-                    String valor2 = fila2.get(columnaIdx);
+                    String valor1 = fila1.get(columnaIdx).replace("\"", "");
+                    String valor2 = fila2.get(columnaIdx).replace("\"", "");
     
                     if (columnaIdx == 1 || columnaIdx == 2 || columnaIdx == 3) { 
                         try {
@@ -101,6 +101,7 @@ public class CsvDataReader {
             }
         }
     }
+    
 }
 
 
