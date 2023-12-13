@@ -1,5 +1,10 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
 
 public class Menu {
     private Scanner scanner;
@@ -45,7 +50,7 @@ public class Menu {
                         restablirCriteriOrdenacio();
                         break;
                     case 6:
-                        desarDadesEnJSON();
+                        desarDadesEnJson();
                         break;
                     case 7:
                         realitzarComparativa();
@@ -84,10 +89,8 @@ public class Menu {
     private void mostrarDades() {
         int limitRegistres = configuracio.getLimitRegistres();
     
-        // Obtener los datos de CsvDataReader
         List<List<String>> dades = csvDataReader.getDades();
     
-        // Llamar a ordenarDatosPorColumna con la columna seleccionada y el criterio de ordenación
         csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada, criteriOrdenacio);
     
         int totalRegistres = dades.size();
@@ -144,8 +147,25 @@ public class Menu {
        System.out.println("Criteri d'ordenacio restablert");
     }
 
-    private void desarDadesEnJSON() {
-        
+    public void desarDadesEnJson() {
+        List<List<String>> dades = csvDataReader.getDades();
+
+        csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada, criteriOrdenacio);
+
+        int limitRegistres = configuracio.getLimitRegistres();
+        List<List<String>> dadesLimitades = dades.stream().limit(limitRegistres).collect(Collectors.toList());
+
+        Gson gson = new Gson();
+        String json = gson.toJson(dadesLimitades);
+
+        String rutaSortida = configuracio.getRutaSortida();
+        String rutaArchivo = rutaSortida + "/ordenado.json";
+
+        try (FileWriter writer = new FileWriter(rutaArchivo)) {
+            writer.write(json);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void realitzarComparativa() {

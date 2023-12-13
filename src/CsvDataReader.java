@@ -14,7 +14,7 @@ public class CsvDataReader {
     }
 
     public List<List<String>> getDades() {
-        dades.clear(); // Limpia la lista antes de añadir nuevos datos
+        dades.clear(); 
     
         try (BufferedReader br = new BufferedReader(new FileReader(rutaFitxerCSV))) {
             String linia;
@@ -23,7 +23,7 @@ public class CsvDataReader {
             while ((linia = br.readLine()) != null) {
                 if (primeraLinia) {
                     primeraLinia = false;
-                    continue; // Salta la primera línea si es un encabezado
+                    continue; 
                 }
     
                 String[] parts = linia.split(",");
@@ -83,19 +83,17 @@ public class CsvDataReader {
                     String valor1 = fila1.get(columnaIdx);
                     String valor2 = fila2.get(columnaIdx);
     
-                    if (columnaIdx == 1 || columnaIdx == 2 || columnaIdx == 3) { // Columnas numéricas
+                    if (columnaIdx == 1 || columnaIdx == 2 || columnaIdx == 3) { 
                         try {
                             int numValor1 = Integer.parseInt(valor1);
                             int numValor2 = Integer.parseInt(valor2);
                             return ordenMenorAMayor ? Integer.compare(numValor1, numValor2) 
                                                      : Integer.compare(numValor2, numValor1);
                         } catch (NumberFormatException e) {
-                            // Si hay un error de formato numérico, compara como cadena
                             return ordenMenorAMayor ? valor1.compareTo(valor2)
                                                      : valor2.compareTo(valor1);
                         }
                     } else {
-                        // Comparación de cadenas para columnas no numéricas
                         return ordenMenorAMayor ? valor1.compareTo(valor2)
                                                  : valor2.compareTo(valor1);
                     }
