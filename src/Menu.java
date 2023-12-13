@@ -103,7 +103,7 @@ public class Menu {
     
         for (int i = 0; i < Math.min(limitRegistres, totalRegistres); i++) {
             List<String> fila = dades.get(i);
-            System.out.println(fila);
+            System.out.println(fila); //Imprimeix files fins que arriba al limit
         }
 
     }
@@ -149,60 +149,69 @@ public class Menu {
     }
 
     public void desarDadesEnJson() {
+        // Obté les dades del fitxer CSV utilitzant CsvDataReader.
         List<List<String>> dades = csvDataReader.getDades();
-
+    
+        // Ordena les dades segons la columna seleccionada i el criteri d'ordenació.
         csvDataReader.ordenarDatosPorColumna(dades, columnaSeleccionada, criteriOrdenacio);
 
+         // Obté el límit de registres definit a la configuració.
         int limitRegistres = configuracio.getLimitRegistres();
+
+        // Limita les dades als primers "limitRegistres" registres.
         List<List<String>> dadesLimitades = dades.stream().limit(limitRegistres).collect(Collectors.toList());
 
+        // Crea una instància de Gson per convertir les dades a format JSON.
         Gson gson = new Gson();
         String json = gson.toJson(dadesLimitades);
 
+        // Obté la ruta de sortida definida a la configuració.
         String rutaSortida = configuracio.getRutaSortida();
+
+        // Defineix la ruta completa del fitxer JSON de sortida.
         String rutaArchivo = rutaSortida + "/ordenado.json";
 
         try (FileWriter writer = new FileWriter(rutaArchivo)) {
-            writer.write(json);
+            writer.write(json); // Escriu les dades en format JSON al fitxer de sortida.
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Maneig d'errors en cas de problemes d'escriptura.
         }
     }
 
     private void realitzarComparativa() {
-        // Obtener los datos del CSV
+        // Obtenir les dades del CSV
         List<List<String>> dades = csvDataReader.getDades();
 
-        // Define los lenguajes para la comparativa
+        // Defineix els llenguatges per la comparativa
         String[] llenguatges = {"Python", "Java", "C#", "JavaScript", "C++"};
         int currentYear = java.time.Year.now().getValue();
         int startYear = currentYear - 5;
 
-        // Inicializar la estructura para almacenar la evolución
+        // Inicialitzar l'estructura per emmagatzemar l'evolució
         Map<String, Map<Integer, Integer>> evolucio = new HashMap<>();
         for (String llenguatge : llenguatges) {
             evolucio.put(llenguatge, new HashMap<>());
         }
 
-        // Procesar los datos
+        // Processar les dades
         for (List<String> fila : dades) {
             String llenguatge = fila.get(0).replace("\"", "");
             try {
                 int any = Integer.parseInt(fila.get(1).replace("\"", ""));
                 int count = Integer.parseInt(fila.get(3).replace("\"", ""));
 
-                // Verificar si el lenguaje y el año están dentro de los parámetros deseados
+                // Verificar si el llenguatge i l'any són dins dels paràmetres desitjats
                 if (any >= startYear && java.util.Arrays.asList(llenguatges).contains(llenguatge)) {
                     Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
                     countsPerYear.merge(any, count, Integer::sum);
                 }
             } catch (NumberFormatException e) {
-                // Manejar posibles errores de formato numérico
+                // Manejar possibles errors de format numèric
                 System.err.println("Error en el formato numérico: " + e.getMessage());
             }
         }
 
-        // Mostrar los resultados
+        // Mostrar els resultats
         for (String llenguatge : llenguatges) {
             System.out.println("Evolució de " + llenguatge + ":");
             Map<Integer, Integer> countsPerYear = evolucio.get(llenguatge);
@@ -216,18 +225,18 @@ public class Menu {
     public void desarComparativaEnTXT(String rutaArchivo) {
         List<List<String>> dades = csvDataReader.getDades();
 
-        // Define los lenguajes para la comparativa
+        // Defineix els llenguatges per a la comparativa
         String[] llenguatges = {"Python", "Java", "C#", "JavaScript", "C++"};
         int currentYear = java.time.Year.now().getValue();
         int startYear = currentYear - 5;
 
-        // Inicializar la estructura para almacenar la evolución
+        // Inicialitzar l'estructura per emmagatzemar l'evolució
         Map<String, Map<Integer, Integer>> evolucio = new HashMap<>();
         for (String llenguatge : llenguatges) {
             evolucio.put(llenguatge, new TreeMap<>()); // TreeMap mantiene los años ordenados
         }
 
-        // Procesar los datos
+        // Procesaar les dades
         for (List<String> fila : dades) {
             String llenguatge = fila.get(0).replace("\"", "");
             try {
@@ -243,7 +252,7 @@ public class Menu {
             }
         }
 
-        // Guardar los resultados en un archivo TXT
+        // Guardar els resultats en un arxiu TXT
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(rutaArchivo))) {
             for (String llenguatge : llenguatges) {
                 writer.write("Evolucio de " + llenguatge + ":\n");
